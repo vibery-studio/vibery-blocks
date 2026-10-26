@@ -4,7 +4,7 @@
 	"name": "kit/split",
 	"title": "Split",
 	"category": "design",
-	"description": "Fluid n-col row on CSS grid — gap EXPLICIT (default 0, the anti-columns). Never emits core/columns (kills traps 1+5+7). One stackAt breakpoint collapses to stackCols below it (the first responsive proof). Children are kit/cell.",
+	"description": "Fluid n-col row on CSS grid — gap EXPLICIT (default 0, the anti-columns). Never emits core/columns (kills traps 1+5+7). One stackAt breakpoint collapses to stackCols below it (the first responsive proof). wrap:true = a horizontal row whose items keep their own width and wrap (pill/chip/logo rows). tagName ul|ol renders a real list (cells become li). Children are kit/cell (+ kit/layer overlays).",
 	"textdomain": "vibery-blocks",
 	"attributes": {
 		"cols":      { "type": "string", "default": "1fr 1fr" },
@@ -13,6 +13,9 @@
 		"stackAt":   { "type": "string", "default": "782px" },
 		"stackCols": { "type": "string", "default": "1fr" },
 		"valign":    { "type": "string", "default": "stretch" },
+		"tagName":   { "type": "string", "enum": [ "div", "ul", "ol" ], "default": "div" },
+		"wrap":      { "type": "boolean", "default": false },
+		"justify":   { "type": "string", "enum": [ "start", "center", "end", "space-between" ], "default": "start" },
 		"uniqueId":  { "type": "string", "default": "" },
 		"kitCss":    { "type": "string", "default": "" }
 	},
@@ -24,7 +27,8 @@
 		"color": { "background": true },
 		"spacing": { "padding": true }
 	},
-	"allowedBlocks": [ "kit/cell" ],
+	"allowedBlocks": [ "kit/cell", "kit/layer" ],
+	"providesContext": { "kit/listTag": "tagName" },
 	"editorScript": "file:./index.js",
 	"style": "file:./style-index.css",
 	"editorStyle": "file:./index.css",

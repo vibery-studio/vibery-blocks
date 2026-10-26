@@ -15,6 +15,7 @@
 		"bgPosition": { "type": "string", "default": "center center" },
 		"bgSize":     { "type": "string", "default": "cover" },
 		"overlay":    { "type": "string", "default": "" },
+		"clipX":      { "type": "boolean", "default": false },
 		"uniqueId":   { "type": "string", "default": "" },
 		"kitCss":     { "type": "string", "default": "" }
 	},

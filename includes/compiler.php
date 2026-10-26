@@ -36,6 +36,7 @@ function vibery_blocks_extra_safe_props( $props ) {
 		'gap', 'position', 'z-index', 'overflow', 'min-width', 'min-height', 'max-width', 'width', 'height',
 		'content', 'row-gap', 'column-gap', 'place-items', 'place-content', 'grid-auto-rows', 'grid-auto-columns',
 		'grid-template-rows', 'grid-template-areas', 'overflow-x', 'overflow-y', 'isolation',
+		'top', 'right', 'bottom', 'left', 'translate', 'list-style', 'list-style-type', 'flex-grow', 'flex-shrink', 'flex-basis',
 	) );
 }
 
@@ -51,12 +52,22 @@ function vibery_blocks_v_length( $v ) {            // a single CSS length / %: 5
 }
 function vibery_blocks_v_length_list( $v ) {        // a space-separated length list (padding shorthand / cols)
 	$v = trim( (string) $v );
-	// allow lengths, %, fr, keywords auto/none, and balanced clamp/calc/min/max/minmax/repeat/var
-	if ( preg_match( '/^[0-9a-zA-Z%.\s,()_\-]+$/', $v ) && ! preg_match( '/[<>{};@\\\\]/', $v )
-		&& strpos( $v, 'url' ) === false && strpos( $v, 'expression' ) === false ) {
+	// allow lengths, %, fr, keywords auto/none, and balanced clamp/calc/min/max/minmax/repeat/var with the
+	// calc operators + - * / (K-2b: '+' was rejected, which silently dropped every `clamp(a, bvw + c, d)`).
+	// Still whitelist-only: no comment opener/closer, no quotes, braces, ';', '@', '\', url(, expression.
+	if ( preg_match( '/^[0-9a-zA-Z%.\s,()_\-+*\/]+$/', $v ) && ! preg_match( '/[<>{};@\\\\]/', $v )
+		&& strpos( $v, '/*' ) === false && strpos( $v, '*/' ) === false && substr_count( $v, '(' ) === substr_count( $v, ')' )
+		&& stripos( $v, 'url' ) === false && stripos( $v, 'expression' ) === false ) {
 		return $v;
 	}
 	return '';
+}
+
+/** kit/layer offsets/sizes: one length (fluid clamp/calc allowed, same grammar as v_length) or ''. */
+function vibery_blocks_v_layer_len( $v ) {
+	$v = trim( (string) $v );
+	if ( '' === $v || strpos( $v, '/*' ) !== false ) { return ''; }
+	return vibery_blocks_v_length( $v );
 }
 function vibery_blocks_v_enum( $v, $allowed ) { return in_array( $v, $allowed, true ) ? $v : ''; }
 function vibery_blocks_v_color( $v ) {               // #hex, rgb/rgba/hsl(...), or a preset var()
@@ -196,6 +207,9 @@ function vibery_blocks_compile_block( $name, $attrs, $uid ) {
 
 	if ( 'kit/band' === $name ) {
 		$d = 'position:relative;width:100%;box-sizing:border-box';
+		// K-2b: clip horizontally (decorative layers hanging past the viewport would scroll the page; the
+		// reference section clips them). Vertical overflow stays visible.
+		if ( ! empty( $attrs['clipX'] ) ) { $d .= ';overflow-x:clip'; }
 		$mh = vibery_blocks_v_length( $attrs['minHeight'] ?? '' );
 		if ( $mh ) { $d .= ';min-height:' . $mh; }
 		$bg = vibery_blocks_v_url( $attrs['bgImageUrl'] ?? '' );
@@ -223,16 +237,36 @@ function vibery_blocks_compile_block( $name, $attrs, $uid ) {
 		$gap  = ( $gap === '' ) ? '0' : $gap;
 		$rgap = vibery_blocks_v_length( $attrs['rowGap'] ?? '' ) ?: $gap;
 		$valign = vibery_blocks_v_enum( $attrs['valign'] ?? 'stretch', array( 'stretch', 'start', 'center', 'end', 'flex-start', 'flex-end' ) ) ?: 'stretch';
-		$d = 'display:grid;grid-template-columns:' . $cols . ';gap:' . $gap . ';row-gap:' . $rgap
-			. ';align-items:' . $valign . ';box-sizing:border-box';
-		Vibery_Blocks_Compiler::add( $sel, $d . ';' . $base );
-		$stack = vibery_blocks_v_length( $attrs['stackAt'] ?? '782px' );
+		// K-2b: a split is the positioning context of its kit/layer children (out of the grid flow) and isolates
+		// their z-order; a list split (tagName ul|ol) drops the list chrome a theme puts on ul/li.
+		$list = in_array( $attrs['tagName'] ?? 'div', array( 'ul', 'ol' ), true );
+		$pre  = 'position:relative;isolation:isolate' . ( $list ? ';list-style:none;margin:0;padding:0' : '' );
+		if ( ! empty( $attrs['wrap'] ) ) {
+			// horizontal row: items keep their own width and wrap (pill/chip rows, logo rows); no column tracks
+			$just = vibery_blocks_v_enum( $attrs['justify'] ?? 'start', array( 'start', 'center', 'end', 'space-between' ) ) ?: 'start';
+			$jmap = array( 'start' => 'flex-start', 'center' => 'center', 'end' => 'flex-end', 'space-between' => 'space-between' );
+			$amap = array( 'stretch' => 'stretch', 'start' => 'flex-start', 'center' => 'center', 'end' => 'flex-end', 'flex-start' => 'flex-start', 'flex-end' => 'flex-end' );
+			$d = $pre . ';display:flex;flex-wrap:wrap;justify-content:' . $jmap[ $just ] . ';align-items:' . $amap[ $valign ]
+				. ';column-gap:' . $gap . ';row-gap:' . $rgap . ';box-sizing:border-box';
+			Vibery_Blocks_Compiler::add( $sel, $d . ';' . $base );
+			Vibery_Blocks_Compiler::add( $sel . ' > .kit-cell', 'flex:0 1 auto;max-width:100%' );
+			if ( $list ) { Vibery_Blocks_Compiler::add( $sel . ' > li', 'margin:0' ); }
+			$stack = '';
+		} else {
+			$d = $pre . ';display:grid;grid-template-columns:' . $cols . ';gap:' . $gap . ';row-gap:' . $rgap
+				. ';align-items:' . $valign . ';box-sizing:border-box';
+			Vibery_Blocks_Compiler::add( $sel, $d . ';' . $base );
+			if ( $list ) { Vibery_Blocks_Compiler::add( $sel . ' > li', 'margin:0' ); }
+			$stack = vibery_blocks_v_length( $attrs['stackAt'] ?? '782px' );
+		}
 		if ( $stack ) {
 			$scols = vibery_blocks_v_length_list( $attrs['stackCols'] ?? '1fr' ) ?: '1fr';
 			Vibery_Blocks_Compiler::add( $sel, 'grid-template-columns:' . $scols, '@media (max-width:' . $stack . ')' );
 		}
 	} elseif ( 'kit/cell' === $name ) {
-		$d = 'position:relative;box-sizing:border-box;min-width:0';
+		// isolation: the cell is the stacking context of its kit/layer children (a 'behind' layer sits over the
+		// cell's own background, under its content)
+		$d = 'position:relative;isolation:isolate;box-sizing:border-box;min-width:0';
 		$pad = vibery_blocks_v_length_list( $attrs['pad'] ?? '' );
 		if ( $pad ) { $d .= ';padding:' . $pad; }
 		$just = vibery_blocks_v_enum( $attrs['justify'] ?? '', array( 'flex-start', 'center', 'flex-end', 'space-between', 'start', 'end' ) );
@@ -242,6 +276,8 @@ function vibery_blocks_compile_block( $name, $attrs, $uid ) {
 			Vibery_Blocks_Compiler::add( $sel . ' img', 'width:100%;height:100%;object-fit:cover;display:block;margin:0' );
 		}
 		Vibery_Blocks_Compiler::add( $sel, $d . ';' . $base );
+	} elseif ( 'kit/layer' === $name ) {
+		vibery_blocks_compile_layer( $sel, $attrs, $base );
 	} else {
 		// core block: paint its style/named-color attrs (the attrs-don't-paint-static trap, recon/18 §3).
 		$d = $base;
@@ -259,6 +295,35 @@ function vibery_blocks_compile_block( $name, $attrs, $uid ) {
 			foreach ( $mm[1] as $decls ) { Vibery_Blocks_Compiler::add( $sel, vibery_blocks_residue_decls( $decls ) ); }
 		}
 	}
+}
+
+/**
+ * kit/layer (K-2b): an absolutely positioned layer inside its nearest positioned kit ancestor (band inner, split,
+ * cell). Bounded vocabulary, never free CSS: anchor per axis (start|center|end), one offset length per axis
+ * measured from that anchor edge (fluid clamp() allowed), optional width/height, z in -1..10 (-1 = behind the
+ * host's content, above its background). Values that fail their grammar are dropped, not interpolated.
+ */
+function vibery_blocks_compile_layer( $sel, $attrs, $base ) {
+	$ax = vibery_blocks_v_enum( $attrs['anchorX'] ?? 'start', array( 'start', 'center', 'end' ) ) ?: 'start';
+	$ay = vibery_blocks_v_enum( $attrs['anchorY'] ?? 'start', array( 'start', 'center', 'end' ) ) ?: 'start';
+	$x  = vibery_blocks_v_layer_len( $attrs['x'] ?? '0' ) ?: '0';
+	$y  = vibery_blocks_v_layer_len( $attrs['y'] ?? '0' ) ?: '0';
+	$w  = vibery_blocks_v_layer_len( $attrs['width'] ?? '' );
+	$h  = vibery_blocks_v_layer_len( $attrs['height'] ?? '' );
+	$z  = isset( $attrs['z'] ) && is_numeric( $attrs['z'] ) ? max( -1, min( 10, (int) $attrs['z'] ) ) : 1;
+	$d  = 'position:absolute;box-sizing:border-box;margin:0;z-index:' . $z;
+	$tr = array( '0', '0' );
+	$d .= 'end' === $ax ? ';right:' . $x : ( 'center' === $ax ? ';left:calc(50% + ' . $x . ')' : ';left:' . $x );
+	$d .= 'end' === $ay ? ';bottom:' . $y : ( 'center' === $ay ? ';top:calc(50% + ' . $y . ')' : ';top:' . $y );
+	if ( 'center' === $ax ) { $tr[0] = '-50%'; }
+	if ( 'center' === $ay ) { $tr[1] = '-50%'; }
+	if ( '0' !== $tr[0] || '0' !== $tr[1] ) { $d .= ';translate:' . $tr[0] . ' ' . $tr[1]; }
+	if ( $w ) { $d .= ';width:' . $w; }
+	if ( $h ) { $d .= ';height:' . $h; }
+	if ( ! empty( $attrs['decorative'] ) ) { $d .= ';pointer-events:none'; }
+	Vibery_Blocks_Compiler::add( $sel, $d . ';' . $base );
+	// flow margins of the children do not push a layer's box (its children start at its top edge)
+	Vibery_Blocks_Compiler::add( $sel . ' > :first-child', 'margin-top:0' );
 }
 
 /**
@@ -370,7 +435,7 @@ add_filter( 'block_editor_settings_all', function ( $settings, $context ) {
 	$post = ( $context && isset( $context->post ) && $context->post instanceof WP_Post ) ? $context->post : null;
 	if ( ! $post ) { return $settings; }
 	// only spend the compile when the post actually carries kit blocks.
-	if ( ! ( has_block( 'kit/band', $post ) || has_block( 'kit/split', $post ) || has_block( 'kit/cell', $post ) ) ) {
+	if ( ! ( has_block( 'kit/band', $post ) || has_block( 'kit/split', $post ) || has_block( 'kit/cell', $post ) || has_block( 'kit/layer', $post ) ) ) {
 		return $settings;
 	}
 	$css = vibery_blocks_compile_post( $post->ID );

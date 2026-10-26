@@ -31,10 +31,16 @@ if ( '' === $stack_at ) {
 	$stack_at    = '782px';
 }
 
+// K-2b: a list split renders a real <ul>/<ol> (its cells render <li>, via block context kit/listTag) so the
+// reference's list semantics reach assistive technology without ARIA; wrap = horizontal wrapping row.
+$tag = in_array( $a['tagName'] ?? 'div', array( 'ul', 'ol' ), true ) ? $a['tagName'] : 'div';
+if ( ! empty( $a['wrap'] ) ) {
+	$stack_class = 'kit-split--wrap';
+}
 $classes = trim( 'wp-block-kit-split kit-split ' . $stack_class . ' ' . $uid );
 $wrapper = get_block_wrapper_attributes( array(
 	'class'        => $classes,
 	'data-stack-at' => $stack_at,
 ) );
 
-printf( '<div %1$s>%2$s</div>', $wrapper, $content );
+printf( '<%1$s %2$s>%3$s</%1$s>', $tag, $wrapper, $content );

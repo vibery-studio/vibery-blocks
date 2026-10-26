@@ -1,0 +1,4 @@
+/* kit/layer — Option B: position/size/z per instance come from the render-time compiler (.kc-N). Only a
+ * structural default lives here: a layer without a compiled rule (plugin CSS cache cold) must not take flow
+ * space on top of the content it decorates. */
+.kit-layer { position: absolute; }

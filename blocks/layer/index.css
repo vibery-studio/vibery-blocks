@@ -1,0 +1,3 @@
+/* editor-only: layers overlap content; outline them so they can be found and selected. */
+.editor-styles-wrapper .kit-layer { outline: 1px dashed rgba(100, 116, 139, .6); outline-offset: -1px; }
+.editor-styles-wrapper .kit-layer:empty { min-width: 24px; min-height: 24px; }
