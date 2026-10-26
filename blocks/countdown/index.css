@@ -1,0 +1,3 @@
+/* kit/countdown editor-only skeleton. The faithful per-instance layout is applied inline by index.js
+   (E13 editor-faithfulness); this is just the tabular-nums + reset so editor digits do not jiggle. */
+.kit-cd .kit-cd-num{font-variant-numeric:tabular-nums}

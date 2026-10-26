@@ -1,0 +1,28 @@
+/* kit/cell — a split child. Default: a plain box that fills its grid track. */
+.kit-cell {
+	position: relative;
+	box-sizing: border-box;
+	padding: var(--kit-cell-pad, 0);
+	min-width: 0; /* let grid tracks shrink so 42% 1fr holds instead of overflowing */
+}
+
+/* type:cover-image — the single child image fills the cell (kills trap 7 per-card image-cover residue).
+ * The cell itself becomes the image frame; works with the kit-split align-items:stretch default. */
+.kit-cell--cover { padding: 0; }
+.kit-cell--cover .wp-block-image,
+.kit-cell--cover figure { margin: 0; height: 100%; }
+.kit-cell--cover img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	margin: 0;
+}
+
+/* justify set → flex column with the authored justify-content (kills the flex-card center geometry
+ * residue: display:flex;flex-direction:column;justify-content:center). */
+.kit-cell--flex {
+	display: flex;
+	flex-direction: column;
+	justify-content: var(--kit-cell-justify, flex-start);
+}

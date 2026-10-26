@@ -1,0 +1,7 @@
+/* kit/split — fluid n-col grid. NEVER core/columns → traps 1+5+7 gone.
+ *
+ * Option B: ALL per-instance layout (display:grid, grid-template-columns, gap, valign, the stack media
+ * query) is emitted by the render-time COMPILER (includes/compiler.php) keyed on the block's uniqueId
+ * (.kc-*). This static stylesheet must therefore carry NOTHING per-instance — the old
+ * `.kit-split{grid-template-columns:var(--kit-split-cols)}` shadowed the compiled rule and reset every
+ * split to the 1fr-1fr fallback (the conformance gate caught it). Intentionally empty of layout. */

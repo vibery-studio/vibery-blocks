@@ -1,0 +1,25 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "kit/cell",
+	"title": "Cell",
+	"category": "design",
+	"description": "A kit/split child. type:cover-image makes its single image fill the cell (object-fit:cover) — kills the per-card image-cover residue (trap 7). justify replaces the flex-card center geometry residue.",
+	"textdomain": "kit-blocks",
+	"parent": [ "kit/split" ],
+	"attributes": {
+		"type":    { "type": "string", "default": "content" },
+		"pad":     { "type": "string", "default": "" },
+		"justify": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"anchor": true,
+		"html": false,
+		"className": true,
+		"color": { "background": true, "text": true },
+		"spacing": { "padding": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./index.css"
+}

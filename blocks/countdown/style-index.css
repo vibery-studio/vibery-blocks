@@ -1,0 +1,4 @@
+/* kit/countdown front+editor base. render.php emits the per-instance scoped layout; this carries
+   only theme-agnostic resets so the digits never inherit a foreign font/line-height. */
+.kit-cd .kit-cd-num,.kit-cd .kit-cd-label,.kit-cd .kit-cd-colon{font-family:inherit}
+.kit-cd .kit-cd-num{font-variant-numeric:tabular-nums}

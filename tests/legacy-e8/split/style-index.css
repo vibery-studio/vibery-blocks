@@ -1,0 +1,27 @@
+/* kit/split — fluid n-col grid. Gap is EXPLICIT (default 0). NEVER core/columns → traps 1+5+7 gone.
+ * Layout rides on inline --kit-* props (survives plugin removal). Only the stack media query lives
+ * here (cannot be inline). One breakpoint per the design (converter authors @1440, needs graceful
+ * stacking only). A discrete set of breakpoint classes lets a non-default stackAt be targeted. */
+.kit-split {
+	display: grid;
+	grid-template-columns: var(--kit-split-cols, 1fr 1fr);
+	gap: var(--kit-split-gap, 0);
+	row-gap: var(--kit-split-rowgap, var(--kit-split-gap, 0));
+	align-items: var(--kit-split-valign, stretch);
+	box-sizing: border-box;
+}
+
+/* stack rules: below the breakpoint, collapse to --kit-split-stackcols (default 1fr). kit-split--nostack
+ * never collapses. Default class is kit-split--stack-782. */
+@media (max-width: 782px) {
+	.kit-split--stack-782 { grid-template-columns: var(--kit-split-stackcols, 1fr); }
+}
+@media (max-width: 600px) {
+	.kit-split--stack-600 { grid-template-columns: var(--kit-split-stackcols, 1fr); }
+}
+@media (max-width: 1024px) {
+	.kit-split--stack-1024 { grid-template-columns: var(--kit-split-stackcols, 1fr); }
+}
+@media (max-width: 960px) {
+	.kit-split--stack-960 { grid-template-columns: var(--kit-split-stackcols, 1fr); }
+}

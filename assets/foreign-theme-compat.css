@@ -1,0 +1,30 @@
+/* foreign-theme-compat.css — ships WITH the plugin, namespaced to .kit-*, so when the site is switched
+ * OFF kit-base to a theme that re-imports the contested WP defaults (blockGap flow margins, root
+ * padding side-inset), bands/splits stay correct. This is the ported trap-1/trap-2 fix; on kit-base
+ * it's a no-op (kit-base already zeroes those at the source). Travels with the blocks, not the theme. */
+
+/* trap 2: a top-level band inside a has-global-padding host (every block theme with root-padding-aware
+ * alignments: TT5, TT4, ...) is inset by the host's side padding, and core's constrained layout pins its
+ * children with `margin-inline:auto !important` + a content-size max-width. Break out: the band's own
+ * negative margins equal the host padding, width is auto so the margins widen it. !important is the only
+ * way past core's !important auto margins; scoped to a DIRECT child of the padded host so nested bands
+ * (inside cells) are never pulled. Measured in tests/e2e/proof.mjs (band x=0, w=viewport on every theme). */
+.has-global-padding > .kit-band {
+	margin-left: calc(-1 * var(--wp--style--root--padding-left, 0px)) !important;
+	margin-right: calc(-1 * var(--wp--style--root--padding-right, 0px)) !important;
+	width: auto !important;
+	max-width: none !important;
+}
+
+/* trap 1/4: a foreign theme injects flow margins between siblings inside the band/split. Authored
+ * spacing rides on block attrs; neutralize the injected gap inside kit containers only. */
+.kit-band__inner > *,
+.kit-split > *,
+.kit-cell > * {
+	margin-block-start: 0;
+	margin-block-end: 0;
+}
+
+/* a foreign theme's image figure margins inside a cover cell would break the fill. */
+.kit-cell--cover .wp-block-image,
+.kit-cell--cover img { margin: 0; }

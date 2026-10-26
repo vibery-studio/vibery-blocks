@@ -1,0 +1,4 @@
+/* editor-only: mirror the frontend so the editor preview ≈ front (editor-parity gate). The editor
+ * wraps the block in extra chrome that can clip a full-bleed band; let it span its container. */
+.editor-styles-wrapper .kit-band { width: 100%; }
+.editor-styles-wrapper .kit-band__inner { max-width: var(--kit-band-max, none); margin-inline: auto; }

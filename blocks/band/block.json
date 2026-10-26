@@ -1,0 +1,34 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "kit/band",
+	"title": "Band",
+	"category": "design",
+	"description": "True full-bleed section wrapper. Full-bleed by its own CSS (no core align breakout dance) — kills traps 1+2. Optional overlay (::before) + bgImage attrs kill the gradient/background-image residue (trap 8).",
+	"textdomain": "vibery-blocks",
+	"attributes": {
+		"tagName":    { "type": "string", "default": "section" },
+		"contentMax": { "type": "string", "default": "" },
+		"minHeight":  { "type": "string", "default": "" },
+		"bgImageUrl": { "type": "string", "default": "" },
+		"bgImageId":  { "type": "number" },
+		"bgPosition": { "type": "string", "default": "center center" },
+		"bgSize":     { "type": "string", "default": "cover" },
+		"overlay":    { "type": "string", "default": "" },
+		"uniqueId":   { "type": "string", "default": "" },
+		"kitCss":     { "type": "string", "default": "" }
+	},
+	"supports": {
+		"align": false,
+		"anchor": true,
+		"html": false,
+		"className": true,
+		"color": { "background": true, "text": true, "gradients": true },
+		"spacing": { "padding": true, "margin": ["top", "bottom"] },
+		"typography": { "fontSize": true, "lineHeight": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

@@ -1,0 +1,5 @@
+/* editor-only: the editor renders the split's InnerBlocks list as the grid container directly
+ * (useInnerBlocksProps applied to the same element), so the grid shows in the editor exactly as
+ * front (editor-parity). Block-list appender shouldn't break the grid track. */
+.editor-styles-wrapper .kit-split { display: grid; }
+.editor-styles-wrapper .kit-split > .block-list-appender { grid-column: 1 / -1; }

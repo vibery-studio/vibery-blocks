@@ -1,0 +1,29 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "kit/split",
+	"title": "Split",
+	"category": "design",
+	"description": "Fluid n-col row on CSS grid — gap EXPLICIT (default 0, the anti-columns). Never emits core/columns (kills traps 1+5+7). One stackAt breakpoint collapses to stackCols below it (the first responsive proof). Children are kit/cell.",
+	"textdomain": "kit-blocks",
+	"attributes": {
+		"cols":      { "type": "string", "default": "1fr 1fr" },
+		"gap":       { "type": "string", "default": "0" },
+		"rowGap":    { "type": "string", "default": "" },
+		"stackAt":   { "type": "string", "default": "782px" },
+		"stackCols": { "type": "string", "default": "1fr" },
+		"valign":    { "type": "string", "default": "stretch" }
+	},
+	"supports": {
+		"align": false,
+		"anchor": true,
+		"html": false,
+		"className": true,
+		"color": { "background": true },
+		"spacing": { "padding": true }
+	},
+	"allowedBlocks": [ "kit/cell" ],
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./index.css"
+}

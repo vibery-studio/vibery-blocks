@@ -1,0 +1,27 @@
+/* kit/band — true full-bleed section. width:100% + the page-no-title flow main = edge-to-edge with
+ * NO core align breakout dance (kills traps 1+2). bg image + overlay are attrs (kill trap 8 residue). */
+.kit-band {
+	position: relative;
+	width: 100%;
+	box-sizing: border-box;
+	background-color: var(--kit-band-bgcolor, transparent);
+	background-image: var(--kit-band-bg, none);
+	background-position: var(--kit-band-bgpos, center center);
+	background-size: var(--kit-band-bgsize, cover);
+	background-repeat: no-repeat;
+	min-height: var(--kit-band-minh, auto);
+}
+.kit-band::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--kit-band-overlay, none);
+	pointer-events: none;
+	z-index: 0;
+}
+.kit-band__inner {
+	position: relative;
+	z-index: 1;
+	max-width: var(--kit-band-max, none);
+	margin-inline: auto;
+}

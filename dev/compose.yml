@@ -1,0 +1,32 @@
+# Throwaway WordPress for vibery-blocks proofs. NOT the shared dev WP (:8088).
+#   docker compose -p vblk-k3 -f dev/compose.yml up -d
+#   docker compose -p vblk-k3 -f dev/compose.yml down -v
+# Env: KIT_BASE (path to the kit-base theme dir), VIBERY_CONTENT (path to the vibery-content plugin dir).
+services:
+  db:
+    image: mariadb:11
+    environment: { MARIADB_ROOT_PASSWORD: root, MARIADB_DATABASE: wp, MARIADB_USER: wp, MARIADB_PASSWORD: wp }
+    healthcheck: { test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"], interval: 3s, retries: 40 }
+  wp:
+    image: wordpress:7-php8.3-apache
+    depends_on: { db: { condition: service_healthy } }
+    ports: ["${WP_PORT:-18210}:80"]
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp
+      WORDPRESS_DB_PASSWORD: wp
+      WORDPRESS_DB_NAME: wp
+    volumes:
+      - wpfiles:/var/www/html
+      - ..:/var/www/html/wp-content/plugins/vibery-blocks
+      - ${VIBERY_CONTENT:?set VIBERY_CONTENT}:/var/www/html/wp-content/plugins/md-content-api
+      - ${KIT_BASE:?set KIT_BASE}:/var/www/html/wp-content/themes/kit-base
+  cli:
+    image: wordpress:cli-php8.3
+    user: "33:33"
+    depends_on: [wp]
+    volumes_from: [wp]
+    environment: { WORDPRESS_DB_HOST: db, WORDPRESS_DB_USER: wp, WORDPRESS_DB_PASSWORD: wp, WORDPRESS_DB_NAME: wp }
+    entrypoint: ["sleep", "infinity"]
+volumes:
+  wpfiles:

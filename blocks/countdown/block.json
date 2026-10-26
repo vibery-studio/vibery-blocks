@@ -1,0 +1,34 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "kit/countdown",
+	"title": "Countdown",
+	"category": "design",
+	"description": "The FIRST behavioral kit block. Server-renders the transcribed 4-cell countdown (days/hours/min/sec circles + colons) with INITIAL computed values so no-JS / first-paint / editor show a sensible static state; viewScript (view.js) ticks it live on the FRONTEND ONLY (the editor stays static). The converter classifies 'this is a countdown' and clones this one block — the JS is authored once, lives in the library.",
+	"textdomain": "vibery-blocks",
+	"attributes": {
+		"targetDate": { "type": "string", "default": "7d" },
+		"labels":     { "type": "string", "default": "days,hours,min,sec" },
+		"numColor":   { "type": "string", "default": "rgb(83, 125, 93)" },
+		"labelColor": { "type": "string", "default": "rgb(153, 153, 153)" },
+		"numSize":    { "type": "string", "default": "22px" },
+		"labelSize":  { "type": "string", "default": "11px" },
+		"colSize":    { "type": "string", "default": "32px" },
+		"cellWidth":  { "type": "string", "default": "62px" },
+		"maxWidth":   { "type": "string", "default": "314px" },
+		"uniqueId":   { "type": "string", "default": "" },
+		"kitCss":     { "type": "string", "default": "" }
+	},
+	"supports": {
+		"align": false,
+		"anchor": true,
+		"html": false,
+		"className": true,
+		"spacing": { "margin": ["top", "bottom"] }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./index.css",
+	"viewScript": "file:./view.js",
+	"render": "file:./render.php"
+}

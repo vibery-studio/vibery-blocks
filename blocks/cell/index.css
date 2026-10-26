@@ -1,0 +1,3 @@
+/* editor-only: a cover cell must show its image filling in the editor too (editor-parity). */
+.editor-styles-wrapper .kit-cell--cover img { object-fit: cover; height: 100%; width: 100%; }
+.editor-styles-wrapper .kit-cell { min-width: 0; }

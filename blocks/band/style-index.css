@@ -1,0 +1,5 @@
+/* kit/band — true full-bleed section. Option B: ALL per-instance values (position/width/min-height/bg/
+ * overlay/inner max-width + the flex-fill) are emitted by the render-time COMPILER keyed on the uniqueId
+ * (.kc-*). The old var(--kit-band-*) rules shadowed the compiled output and reset bands to defaults — gone.
+ * Only a non-instance structural default remains: the inner is a positioning context regardless. */
+.kit-band__inner { position: relative; z-index: 1; }

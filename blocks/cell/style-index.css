@@ -1,0 +1,3 @@
+/* kit/cell — a split child. Option B: per-instance values (padding/justify/cover-fill) are emitted by the
+ * render-time COMPILER keyed on the uniqueId (.kc-*). The old var(--kit-cell-*) rules shadowed it — gone.
+ * No non-instance defaults are needed (the compiler emits min-width:0 + box-sizing per cell). */
