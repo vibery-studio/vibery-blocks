@@ -37,12 +37,12 @@
 		edit: function ( props ) {
 			var a = props.attributes;
 			var blockProps = be.useBlockProps( {
-				className: 'kit-split ' + stackClass( a ) + uidClass( a ),
+				className: 'kit-split ' + ( a.wrap ? 'kit-split--wrap' : stackClass( a ) ) + uidClass( a ),
 				style: splitStyle( a ),
 				'data-stack-at': a.stackAt,
 			} );
 			var inner = be.useInnerBlocksProps( blockProps, {
-				allowedBlocks: [ 'kit/cell' ],
+				allowedBlocks: [ 'kit/cell', 'kit/layer' ],
 				template: [ [ 'kit/cell', {} ], [ 'kit/cell', {} ] ],
 				orientation: 'horizontal',
 			} );
@@ -58,6 +58,17 @@
 							label: __( 'Vertical align', 'vibery-blocks' ), value: a.valign,
 							options: [ 'stretch', 'start', 'center', 'end' ].map( function ( t ) { return { label: t, value: t }; } ),
 							onChange: function ( v ) { props.setAttributes( { valign: v } ); },
+						} ),
+						el( cmp.ToggleControl, { label: __( 'Wrapping row (items keep their width)', 'vibery-blocks' ), checked: !! a.wrap, onChange: function ( v ) { props.setAttributes( { wrap: v } ); } } ),
+						a.wrap ? el( cmp.SelectControl, {
+							label: __( 'Row alignment', 'vibery-blocks' ), value: a.justify,
+							options: [ 'start', 'center', 'end', 'space-between' ].map( function ( t ) { return { label: t, value: t }; } ),
+							onChange: function ( v ) { props.setAttributes( { justify: v } ); },
+						} ) : null,
+						el( cmp.SelectControl, {
+							label: __( 'Semantics', 'vibery-blocks' ), value: a.tagName,
+							options: [ { label: 'group (div)', value: 'div' }, { label: 'list (ul)', value: 'ul' }, { label: 'numbered list (ol)', value: 'ol' } ],
+							onChange: function ( v ) { props.setAttributes( { tagName: v } ); },
 						} )
 					)
 				),

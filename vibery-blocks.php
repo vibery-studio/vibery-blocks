@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Vibery Blocks
  * Plugin URI:  https://github.com/vibery-studio/vibery-blocks
- * Description: Layout blocks for pages built with Vibery — kit/band (full-bleed section), kit/split (fluid n-column grid, no core/columns), kit/cell (split child) and kit/countdown. Free, GPL, never licence-gated: rendering must not depend on a subscription. Includes a one-click "eject" that bakes the layout into plain core blocks + a static stylesheet so the pages keep looking the same if this plugin is removed.
+ * Description: Layout blocks for pages built with Vibery — kit/band (full-bleed section), kit/split (fluid n-column grid or wrapping row, no core/columns; optionally a real list), kit/cell (split child), kit/layer (bounded overlay) and kit/countdown. Per-viewport visibility uses WordPress 7's own block attribute (polyfilled on 6.3–6.9). Free, GPL, never licence-gated: rendering must not depend on a subscription. Includes a one-click "eject" that bakes the layout into plain core blocks + a static stylesheet so the pages keep looking the same if this plugin is removed.
  * Version: 1.0.0
  * Requires at least: 6.3
  * Requires PHP: 7.4
@@ -74,15 +74,16 @@ function vibery_blocks_sanitize_build_meta( $value ) {
 	return $out;
 }
 
-/** Register the four blocks from their block.json (apiVersion 3). */
+/** Register the blocks from their block.json (apiVersion 3). */
 add_action( 'init', function () {
-	foreach ( array( 'band', 'split', 'cell', 'countdown' ) as $b ) {
+	foreach ( array( 'band', 'split', 'cell', 'layer', 'countdown' ) as $b ) {
 		register_block_type( VIBERY_BLOCKS_DIR . 'blocks/' . $b );
 	}
 } );
 
 require_once VIBERY_BLOCKS_DIR . 'includes/compiler.php';
 require_once VIBERY_BLOCKS_DIR . 'includes/eject.php';
+require_once VIBERY_BLOCKS_DIR . 'includes/visibility.php';
 
 /**
  * Foreign-theme compat: when the site is NOT on kit-base, re-assert the trap-1/trap-2 fixes namespaced to

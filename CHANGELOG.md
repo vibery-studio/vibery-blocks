@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+Build-layer vocabulary (Site Manager K-2b). All blocks stay dynamic (`save()` = InnerBlocks.Content), so no saved shape changed and no `deprecated[]` entry is needed: content written by 1.0.0 (incl. pages emitted by the K-2 builder) opens with 0 invalid blocks on WP 6.9.4 and 7.1.3 (`tests/e2e/k2b.mjs`, fixtures `tests/fixtures/k2-emitted/`).
+
+### Added
+- `kit/layer`: an absolutely positioned layer (badge on a card, decorative shape, text over media) inside the nearest band / split / cell. Bounded attributes only — `anchorX`/`anchorY` (start|center|end), one offset per axis (`x`, `y`; fluid `clamp()` allowed), optional `width`/`height`, `z` (-1…10, -1 = behind the host's content), `decorative` (renders `aria-hidden="true"`, `pointer-events:none`). Content layers stay where they sit in the block tree, so their text keeps reading order. Eject converts layers to `core/group` with the same hooks.
+- `kit/split`: `tagName` (`div`|`ul`|`ol`) renders a real list (its cells render `<li>` via block context `kit/listTag`; theme list chrome reset), `wrap` (a horizontal row whose items keep their own width and wrap — pills, chips, logo rows) with `justify` (start|center|end|space-between). Splits and cells are now positioning/stacking contexts (`position:relative; isolation:isolate`) for their layers. `kit/layer` is an allowed split child.
+- Per-viewport visibility = WordPress 7.0+ core's own `metadata.blockVisibility.viewport` (`{"mobile":false,…}`, core breakpoints mobile ≤ 480px, tablet ≤ 782px, desktop above). On WP 6.3–6.9 the plugin applies the identical `wp-block-hidden-<viewport>` classes and rules (`includes/visibility.php`); on 7.0+ it does nothing (core renders it and its editor edits it natively). Works on every block, core and kit.
+- `kit/band` `clipX`: clips horizontal overflow (`overflow-x:clip`; vertical stays visible) — set by the builder on bands holding layers, so a decoration hanging past the viewport never scrolls the page (references clip theirs).
+- Eject warnings `list_semantics_lost` (core/group cannot be a list) and `viewport_visibility_needs_wp7` (WP < 7.0: per-viewport hiding is this plugin's polyfill).
+
+### Fixed
+- `vibery_blocks_v_length_list` rejected `+`, silently dropping every `clamp(a, b vw + c, d)` in `cols`/`stackCols`/`pad`/`bgPosition`. The grammar now allows the calc operators `+ - * /` and is still whitelist-only (no comments, quotes, braces, `;`, `@`, `\`, `url(`, `expression`, unbalanced parentheses). Regression assertions in `tests/php/run.php`.
+
 ## [1.0.0]
 
 First release. The Kit Blocks runtime (wp-builder-kit `kit-blocks` @ 778e4ed) productized as a free GPL-2.0-or-later plugin.

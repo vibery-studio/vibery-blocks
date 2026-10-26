@@ -132,8 +132,18 @@ final class Vibery_Blocks_Eject {
 				if ( '' === $at ) { $sc = 'kit-split--nostack'; }
 				elseif ( preg_match( '/^(\d+)px$/', $at, $m ) ) { $sc = 'kit-split--stack-' . $m[1]; }
 				else { $sc = 'kit-split--stack-782'; }
+				if ( ! empty( $attrs['wrap'] ) ) { $sc = 'kit-split--wrap'; }
+				if ( in_array( $attrs['tagName'] ?? 'div', array( 'ul', 'ol' ), true ) ) {
+					// core/group cannot be a <ul>: the grid survives, the list semantics do not (declared, not hidden)
+					$rep['warnings'][] = 'list_semantics_lost';
+				}
 				$out[] = self::group( $attrs, self::classes( $attrs, array( 'kit-split', $sc ) ), 'div', $kids );
 				$rep['converted']['kit/split'] = ( $rep['converted']['kit/split'] ?? 0 ) + 1;
+			} elseif ( 'kit/layer' === $name ) {
+				// position/size/z live in the baked kc rule; aria-hidden of a decorative layer is lost with the
+				// plugin (core/group has no aria attribute) — it holds no text, so nothing is announced anyway.
+				$out[] = self::group( $attrs, self::classes( $attrs, array( 'kit-layer' ) ), 'div', $kids );
+				$rep['converted']['kit/layer'] = ( $rep['converted']['kit/layer'] ?? 0 ) + 1;
 			} elseif ( 'kit/cell' === $name ) {
 				$own = array( 'kit-cell' );
 				if ( ( $attrs['type'] ?? '' ) === 'cover-image' ) { $own[] = 'kit-cell--cover'; }
@@ -153,7 +163,7 @@ final class Vibery_Blocks_Eject {
 		foreach ( $blocks as $b ) {
 			$name  = $b['blockName'] ?? '';
 			$attrs = $b['attrs'] ?? array();
-			if ( in_array( $name, array( 'kit/band', 'kit/split', 'kit/cell' ), true )
+			if ( in_array( $name, array( 'kit/band', 'kit/split', 'kit/cell', 'kit/layer' ), true )
 				&& ! empty( $attrs['uniqueId'] ) && preg_match( '/^kc-\d+$/', (string) $attrs['uniqueId'] ) ) {
 				$sel = '.' . $attrs['uniqueId'] . '.' . $attrs['uniqueId'];
 				$d   = '';
@@ -171,7 +181,7 @@ final class Vibery_Blocks_Eject {
 
 	private static function base_css() {
 		$css = '';
-		foreach ( array( 'band', 'split', 'cell' ) as $b ) {
+		foreach ( array( 'band', 'split', 'cell', 'layer' ) as $b ) {
 			$f = VIBERY_BLOCKS_DIR . 'blocks/' . $b . '/style-index.css';
 			if ( is_readable( $f ) ) { $css .= file_get_contents( $f ) . "\n"; }
 		}
@@ -242,7 +252,7 @@ final class Vibery_Blocks_Eject {
 		if ( false === strpos( $post->post_content, '<!-- wp:kit/' ) && false === strpos( $post->post_content, '<!-- wp:core/block' ) && false === strpos( $post->post_content, '<!-- wp:block ' ) ) {
 			return rest_ensure_response( array( 'status' => 'noop', 'reason' => 'no_kit_blocks', 'post_id' => $id ) );
 		}
-		$rep = array( 'converted' => array(), 'unsupported' => array() );
+		$rep = array( 'converted' => array(), 'unsupported' => array(), 'warnings' => array() );
 		$src = parse_blocks( $post->post_content );
 		$new = self::convert( $src, $rep );
 		if ( $rep['unsupported'] ) {
@@ -275,6 +285,13 @@ final class Vibery_Blocks_Eject {
 			// can beat a classic theme's own paragraph margins; widths stay exact, block heights can move a few percent
 			// (measured: Astra, -6.7% worst band). Block themes measured exact.
 			$report['warnings'][] = array( 'code' => 'classic_theme_margins', 'detail' => 'classic theme: vertical rhythm inside bands may shift slightly after eject' );
+		}
+		if ( in_array( 'list_semantics_lost', $rep['warnings'], true ) ) {
+			$report['warnings'][] = array( 'code' => 'list_semantics_lost', 'detail' => 'list rows (ul/ol) become plain groups: the layout is kept, screen readers no longer announce a list' );
+		}
+		if ( ! vibery_blocks_core_has_viewport_visibility() && false !== strpos( $post->post_content, '"viewport"' ) && false !== strpos( $post->post_content, '"blockVisibility"' ) ) {
+			// WP < 7.0: per-viewport hiding is this plugin's polyfill; without the plugin those blocks show at every width
+			$report['warnings'][] = array( 'code' => 'viewport_visibility_needs_wp7', 'detail' => 'blocks hidden on some screen sizes will show everywhere after removing the plugin until WordPress is 7.0 or newer' );
 		}
 		if ( $dry ) { return rest_ensure_response( array( 'status' => 'dry_run' ) + $report ); }
 

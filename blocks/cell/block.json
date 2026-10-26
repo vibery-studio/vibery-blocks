@@ -7,6 +7,7 @@
 	"description": "A kit/split child. type:cover-image makes its single image fill the cell (object-fit:cover) — kills the per-card image-cover residue (trap 7). justify replaces the flex-card center geometry residue.",
 	"textdomain": "vibery-blocks",
 	"parent": [ "kit/split" ],
+	"usesContext": [ "kit/listTag" ],
 	"attributes": {
 		"type":     { "type": "string", "default": "content" },
 		"pad":      { "type": "string", "default": "" },

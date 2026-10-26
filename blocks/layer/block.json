@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "kit/layer",
+	"title": "Layer",
+	"category": "design",
+	"description": "An absolutely positioned layer (badge on a card, decorative shape, text over media) inside the nearest band, split or cell. Bounded: anchor corner/edge per axis, one offset per axis, optional size, z order -1..10. Decorative layers are hidden from assistive technology; content layers stay in reading order.",
+	"textdomain": "vibery-blocks",
+	"ancestor": [ "kit/band" ],
+	"attributes": {
+		"anchorX":    { "type": "string", "enum": [ "start", "center", "end" ], "default": "start" },
+		"anchorY":    { "type": "string", "enum": [ "start", "center", "end" ], "default": "start" },
+		"x":          { "type": "string", "default": "0" },
+		"y":          { "type": "string", "default": "0" },
+		"width":      { "type": "string", "default": "" },
+		"height":     { "type": "string", "default": "" },
+		"z":          { "type": "number", "default": 1 },
+		"decorative": { "type": "boolean", "default": false },
+		"uniqueId":   { "type": "string", "default": "" }
+	},
+	"supports": {
+		"anchor": true,
+		"html": false,
+		"className": true,
+		"color": { "background": true, "text": true, "gradients": true },
+		"spacing": { "padding": true },
+		"__experimentalBorder": { "radius": true, "color": true, "width": true, "style": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

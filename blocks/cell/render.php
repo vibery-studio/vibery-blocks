@@ -32,4 +32,8 @@ if ( $uid ) {
 
 $wrapper = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classes ) ) );
 
-printf( '<div %1$s>%2$s</div>', $wrapper, $content );
+// K-2b: inside a list split (context kit/listTag ul|ol) the cell is the list item.
+$list = isset( $block->context['kit/listTag'] ) && in_array( $block->context['kit/listTag'], array( 'ul', 'ol' ), true );
+$tag  = $list ? 'li' : 'div';
+
+printf( '<%1$s %2$s>%3$s</%1$s>', $tag, $wrapper, $content );

@@ -102,6 +102,78 @@ $rep2 = array( 'converted' => array(), 'unsupported' => array() );
 Vibery_Blocks_Eject::convert( parse_blocks( '<!-- wp:kit/countdown /-->' ), $rep2 );
 $t( 1 === count( $rep2['unsupported'] ) && 'live_script' === $rep2['unsupported'][0]['reason'], 'eject: countdown unsupported' );
 
+/* ---- K-2b: '+' inside clamp()/calc() (was rejected → fluid pad/cols/stackCols silently dropped) -------------- */
+$t( 'clamp(16px, 2.5vw + 6px, 48px)' === vibery_blocks_v_length_list( 'clamp(16px, 2.5vw + 6px, 48px)' ), 'length_list: + inside clamp kept' );
+$t( 'repeat(auto-fit,minmax(clamp(120px, 10vw + 40px, 260px),1fr))' === vibery_blocks_v_length_list( 'repeat(auto-fit,minmax(clamp(120px, 10vw + 40px, 260px),1fr))' ), 'length_list: + inside nested repeat/minmax/clamp kept' );
+$t( 'calc(100% / 3 - 2 * 8px) 1fr' === vibery_blocks_v_length_list( 'calc(100% / 3 - 2 * 8px) 1fr' ), 'length_list: calc * / kept' );
+$t( '' === vibery_blocks_v_length_list( '1fr /* x */ 2fr' ), 'length_list: comment dropped' );
+$t( '' === vibery_blocks_v_length_list( 'clamp(1px, 2vw + 3px' ), 'length_list: unbalanced paren dropped' );
+$t( '' === vibery_blocks_v_length_list( 'calc(1px + url(x))' ), 'length_list: url still dropped' );
+$t( '' === vibery_blocks_v_length_list( '1px + 2px; color:red' ), 'length_list: ; still dropped' );
+$t( '' === vibery_blocks_v_length_list( "1px '+' 2px" ), 'length_list: quote dropped' );
+
+/* ---- K-2b: kit/layer + list/wrap split, compiled on THIS core (KSES + style engine) ---------------------------------- */
+$k2b = '<!-- wp:kit/band {"uniqueId":"kc-9601","clipX":true} -->'
+	. '<!-- wp:kit/layer {"anchorX":"end","anchorY":"start","x":"clamp(8px, 1vw + 4px, 24px)","y":"12px","width":"120px","height":"40px","z":-1,"decorative":true,"uniqueId":"kc-9602"} --><!-- /wp:kit/layer -->'
+	. '<!-- wp:kit/layer {"anchorX":"center","anchorY":"center","x":"0","y":"-10px","z":3,"uniqueId":"kc-9603"} --><!-- wp:paragraph --><p>on top</p><!-- /wp:paragraph --><!-- /wp:kit/layer -->'
+	. '<!-- wp:kit/layer {"x":"1px;}body{display:none","y":"url(x)","width":"expression(1)","z":99,"anchorX":"evil","uniqueId":"kc-9604"} --><!-- /wp:kit/layer -->'
+	. '<!-- wp:kit/split {"tagName":"ul","wrap":true,"justify":"center","gap":"8px","rowGap":"6px","valign":"center","uniqueId":"kc-9605"} -->'
+	. '<!-- wp:kit/cell {"uniqueId":"kc-9606"} --><!-- wp:paragraph --><p>pill</p><!-- /wp:paragraph --><!-- /wp:kit/cell -->'
+	. '<!-- wp:kit/cell {"uniqueId":"kc-9607"} --><!-- wp:paragraph --><p>pill 2</p><!-- /wp:paragraph --><!-- /wp:kit/cell -->'
+	. '<!-- /wp:kit/split -->'
+	. '<!-- wp:kit/split {"tagName":"ol","cols":"repeat(auto-fit,minmax(clamp(120px, 10vw + 40px, 260px),1fr))","uniqueId":"kc-9608"} -->'
+	. '<!-- wp:kit/cell {"uniqueId":"kc-9609"} --><!-- wp:paragraph --><p>card</p><!-- /wp:paragraph --><!-- /wp:kit/cell -->'
+	. '<!-- /wp:kit/split -->'
+	. '<!-- wp:kit/split {"tagName":"script","uniqueId":"kc-9610"} --><!-- wp:kit/cell {"uniqueId":"kc-9611"} --><!-- wp:paragraph --><p>c</p><!-- /wp:paragraph --><!-- /wp:kit/cell --><!-- /wp:kit/split -->'
+	. '<!-- /wp:kit/band -->';
+$kid  = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'draft', 'post_title' => 'vb-php-k2b', 'post_content' => wp_slash( $k2b ) ) );
+$kcss = vibery_blocks_compile_post( $kid );
+$ver  = 'WP ' . get_bloginfo( 'version' );
+foreach ( array(
+	'.kc-9602.kc-9602{position:absolute', 'right:clamp(8px, 1vw + 4px, 24px)', 'top:12px', 'width:120px', 'height:40px', 'z-index:-1', 'pointer-events:none',
+	'left:calc(50% + 0)', 'top:calc(50% + -10px)', 'translate:-50% -50%', 'z-index:3',
+	'.kc-9605.kc-9605{position:relative;isolation:isolate;list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:8px;row-gap:6px',
+	'.kc-9605.kc-9605 > .kit-cell{flex:0 1 auto;max-width:100%;}', '.kc-9605.kc-9605 > li{margin:0;}',
+	'grid-template-columns:repeat(auto-fit,minmax(clamp(120px, 10vw + 40px, 260px),1fr))', '.kc-9608.kc-9608 > li{margin:0;}',
+	'.kc-9606.kc-9606{position:relative;isolation:isolate', 'overflow-x:clip',
+) as $decl ) {
+	$t( false !== strpos( $kcss, $decl ), "$ver: K-2b compiled CSS lost '$decl'" );
+}
+// hostile layer: every bad value dropped to its default, z clamped, nothing breaks out
+preg_match( '/\.kc-9604\.kc-9604\{([^}]*)\}/', $kcss, $m4 );
+$t( isset( $m4[1] ) && false !== strpos( $m4[1], 'left:0' ) && false !== strpos( $m4[1], 'top:0' ) && false !== strpos( $m4[1], 'z-index:10' ) && false === strpos( $m4[1], 'width' ), 'layer: hostile values dropped/clamped: ' . ( $m4[1] ?? 'no rule' ) );
+foreach ( array( 'body{', 'url(', 'expression' ) as $bad ) { $t( false === stripos( $kcss, $bad ), "layer: hostile '$bad' in CSS" ); }
+// front render: list semantics + decorative aria-hidden + bogus tagName falls back to div
+$GLOBALS['post'] = get_post( $kid ); setup_postdata( $GLOBALS['post'] );
+$html = do_blocks( get_post( $kid )->post_content );
+$t( (bool) preg_match( '#<ul [^>]*class="[^"]*kit-split--wrap[^"]*kc-9605#', $html ), 'render: wrap split is a <ul>: ' . substr( $html, 0, 400 ) );
+$t( 3 === preg_match_all( '#<li [^>]*class="[^"]*kit-cell#', $html ), 'render: list cells are <li> (2 in ul + 1 in ol)' );
+$t( (bool) preg_match( '#<ol [^>]*kc-9608#', $html ), 'render: ol split' );
+$t( (bool) preg_match( '#<div [^>]*kc-9610#', $html ) && false === stripos( $html, '<script' ), 'render: unknown tagName -> div' );
+$t( (bool) preg_match( '#<div [^>]*kc-9611#', $html ), 'render: cell outside a list split stays a div' );
+$t( (bool) preg_match( '#<div [^>]*kit-layer[^>]*kc-9602[^>]*aria-hidden="true"|<div [^>]*aria-hidden="true"[^>]*kc-9602#', $html ), 'render: decorative layer aria-hidden' );
+$t( ! preg_match( '#kc-9603[^>]*aria-hidden#', $html ) && false !== strpos( $html, 'on top' ), 'render: content layer not hidden, text in the DOM' );
+wp_reset_postdata();
+// eject carries layers + warns about list semantics
+$rep3 = array( 'converted' => array(), 'unsupported' => array(), 'warnings' => array() );
+$ej = serialize_blocks( Vibery_Blocks_Eject::convert( parse_blocks( $k2b ), $rep3 ) );
+$t( 3 === ( $rep3['converted']['kit/layer'] ?? 0 ) && false === strpos( $ej, 'wp:kit/' ) && false !== strpos( $ej, 'kit-layer kc-9602' ), 'eject: layers -> core/group with hooks' );
+$t( in_array( 'list_semantics_lost', $rep3['warnings'], true ) && false !== strpos( $ej, 'kit-split--wrap' ), 'eject: list split warns, wrap class kept' );
+wp_delete_post( $kid, true );
+
+/* ---- K-2b: per-viewport visibility = core's metadata.blockVisibility.viewport (polyfilled below WP 7.0) ----------- */
+$vis = '<!-- wp:paragraph {"metadata":{"blockVisibility":{"viewport":{"mobile":false,"tablet":false}}}} --><p>hide small</p><!-- /wp:paragraph -->'
+	. '<!-- wp:paragraph {"metadata":{"blockVisibility":{"viewport":{"desktop":false,"mobile":true}}}} --><p>hide desktop</p><!-- /wp:paragraph -->'
+	. '<!-- wp:paragraph {"metadata":{"blockVisibility":{"viewport":"x"}}} --><p>malformed</p><!-- /wp:paragraph -->'
+	. '<!-- wp:kit/band {"uniqueId":"kc-9620","metadata":{"blockVisibility":{"viewport":{"tablet":false}}}} --><!-- wp:paragraph --><p>b</p><!-- /wp:paragraph --><!-- /wp:kit/band -->';
+$vh = do_blocks( $vis );
+$t( false !== strpos( $vh, 'class="wp-block-hidden-mobile wp-block-hidden-tablet"' ) || false !== strpos( $vh, 'wp-block-hidden-mobile wp-block-hidden-tablet' ), "$ver: mobile+tablet hidden classes: " . substr( $vh, 0, 300 ) );
+$t( 1 === substr_count( $vh, 'wp-block-hidden-desktop' ), "$ver: desktop hidden class" );
+$t( (bool) preg_match( '#<section [^>]*kit-band[^>]*wp-block-hidden-tablet|<section [^>]*wp-block-hidden-tablet[^>]*kit-band#', $vh ), "$ver: dynamic kit block gets the class on its wrapper" );
+$t( (bool) preg_match( '#<p( class="wp-block-paragraph")?>malformed</p>#', $vh ) && 1 === substr_count( $vh, 'wp-block-hidden-desktop' ) && 2 === substr_count( $vh, 'wp-block-hidden-tablet' ), 'malformed visibility value: block rendered untouched' );
+$t( vibery_blocks_core_has_viewport_visibility() === version_compare( preg_replace( '/[^0-9.].*$/', '', get_bloginfo( 'version' ) ), '7.0', '>=' ), "$ver: core-support detection" );
+$t( false !== strpos( vibery_blocks_visibility_css(), '@media (width <= 480px){.wp-block-hidden-mobile{display:none !important}}' ), 'polyfill CSS = core default breakpoints' );
+
 /* ---- _vibery_build meta ----------------------------------------------------------------------------------------- */
 update_post_meta( $pid, '_vibery_build', array( 'emitter_ver' => '1.2', 'conformance_ver' => 'cv-1', 'ir_id' => 'a<b>', 'x' => 1 ) );
 $b = get_post_meta( $pid, '_vibery_build', true );
