@@ -24,12 +24,16 @@ defined( 'ABSPATH' ) || exit;
  * Layout properties the compiler needs that older cores omit from KSES' inline-style allow-list. Applied
  * ONLY around our own safecss_filter_attr() call (see vibery_blocks_safe_decls) — never site-wide, so the
  * plugin does not widen what core allows in any other content. We widen the PROPERTY NAMES to a known-safe
- * layout set; safecss_filter_attr() still checks url()/gradient/unsafe-char on the VALUES.
+ * layout set; safecss_filter_attr() still checks url()/gradient/unsafe-char on the VALUES. The list names EVERY
+ * property the compiler emits, not just the ones an older core lacks: WP 6.9 omits `display` (and others) from the
+ * default list, which silently turned every kit/split into a stacked block until this was explicit.
  */
 function vibery_blocks_extra_safe_props( $props ) {
 	return array_merge( $props, array(
 		'margin-inline', 'margin-block', 'inset', 'box-sizing', 'pointer-events', 'object-fit',
 		'object-position', 'aspect-ratio', 'container-type', 'inset-inline', 'inset-block',
+		'display', 'flex', 'flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content', 'grid-template-columns',
+		'gap', 'position', 'z-index', 'overflow', 'min-width', 'min-height', 'max-width', 'width', 'height',
 		'content', 'row-gap', 'column-gap', 'place-items', 'place-content', 'grid-auto-rows', 'grid-auto-columns',
 		'grid-template-rows', 'grid-template-areas', 'overflow-x', 'overflow-y', 'isolation',
 	) );

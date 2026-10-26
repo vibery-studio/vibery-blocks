@@ -8,7 +8,7 @@ services:
     environment: { MARIADB_ROOT_PASSWORD: root, MARIADB_DATABASE: wp, MARIADB_USER: wp, MARIADB_PASSWORD: wp }
     healthcheck: { test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"], interval: 3s, retries: 40 }
   wp:
-    image: wordpress:7-php8.3-apache
+    image: ${WP_IMAGE:-wordpress:7-php8.3-apache}
     depends_on: { db: { condition: service_healthy } }
     ports: ["${WP_PORT:-18210}:80"]
     environment:

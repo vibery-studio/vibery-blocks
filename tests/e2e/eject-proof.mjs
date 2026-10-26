@@ -89,8 +89,9 @@ ok(np.body.status === 'noop' && np.body.reason === 'no_kit_blocks', 'plain page 
 try { wp(['user', 'delete', 'k3editor', '--yes']); } catch (e) {}
 wp(['user', 'create', 'k3editor', 'k3editor@example.com', '--role=editor', '--user_pass=k3-editor-pass-1']);
 const epw = wp(['user', 'application-password', 'create', 'k3editor', 'e2e', '--porcelain']);
-const rawEd = await fetch(WP + '/?rest_route=/vibery-blocks/v1/eject', { method: 'POST', headers: { Authorization: 'Basic ' + Buffer.from('k3editor:' + epw).toString('base64'), 'Content-Type': 'application/json' }, body: JSON.stringify({ post_id: PAGE }) });
-const anon = await fetch(WP + '/?rest_route=/vibery-blocks/v1/eject', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ post_id: PAGE }) });
+const retry = async (f) => { try { return await f(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return f(); } };  // apache closes idle keep-alive sockets
+const rawEd = await retry(() => fetch(WP + '/?rest_route=/vibery-blocks/v1/eject', { method: 'POST', headers: { Authorization: 'Basic ' + Buffer.from('k3editor:' + epw).toString('base64'), 'Content-Type': 'application/json' }, body: JSON.stringify({ post_id: PAGE }) }));
+const anon = await retry(() => fetch(WP + '/?rest_route=/vibery-blocks/v1/eject', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ post_id: PAGE }) }));
 R.permissions = { editor: rawEd.status, anonymous: anon.status };
 ok(rawEd.status === 403, `editor without edit_css got ${rawEd.status}`);
 ok(anon.status === 401 || anon.status === 403, `anonymous got ${anon.status}`);

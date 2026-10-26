@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const P = '/var/www/html/wp-content/plugins/kit-blocks-e8';
 const d = (...a) => execFileSync('docker', a);
-d('exec', 'vblk-k3-wp-1', 'sh', '-c', `rm -rf ${P} && mkdir -p ${P}/build`);
-d('cp', ROOT + '/tests/legacy-e8/kit-blocks.php', 'vblk-k3-wp-1:' + P + '/kit-blocks.php');
-for (const b of ['band', 'split', 'cell']) d('cp', ROOT + '/tests/legacy-e8/' + b, `vblk-k3-wp-1:${P}/build/${b}`);
-d('exec', 'vblk-k3-wp-1', 'chown', '-R', 'www-data:www-data', P);
+d('exec', (process.env.PROJ || 'vblk-k3') + '-wp-1', 'sh', '-c', `rm -rf ${P} && mkdir -p ${P}/build`);
+d('cp', ROOT + '/tests/legacy-e8/kit-blocks.php', (process.env.PROJ || 'vblk-k3') + '-wp-1:' + P + '/kit-blocks.php');
+for (const b of ['band', 'split', 'cell']) d('cp', ROOT + '/tests/legacy-e8/' + b, `${process.env.PROJ || 'vblk-k3'}-wp-1:${P}/build/${b}`);
+d('exec', (process.env.PROJ || 'vblk-k3') + '-wp-1', 'chown', '-R', 'www-data:www-data', P);
 const fail = [];
 try {
   wp(['plugin', 'activate', 'kit-blocks-e8', 'vibery-blocks']);

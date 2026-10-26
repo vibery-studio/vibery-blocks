@@ -1,7 +1,7 @@
 === Vibery Blocks ===
 Contributors: viberystudio
 Tags: blocks, layout, full-width, section, grid
-Requires at least: 6.6
+Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 1.0.0

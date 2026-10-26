@@ -4,7 +4,7 @@
  * Plugin URI:  https://github.com/vibery-studio/vibery-blocks
  * Description: Layout blocks for pages built with Vibery — kit/band (full-bleed section), kit/split (fluid n-column grid, no core/columns), kit/cell (split child) and kit/countdown. Free, GPL, never licence-gated: rendering must not depend on a subscription. Includes a one-click "eject" that bakes the layout into plain core blocks + a static stylesheet so the pages keep looking the same if this plugin is removed.
  * Version: 1.0.0
- * Requires at least: 6.6
+ * Requires at least: 6.3
  * Requires PHP: 7.4
  * Author: Vibery
  * License: GPL-2.0-or-later

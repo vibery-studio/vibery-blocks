@@ -73,6 +73,21 @@ $t( $k1 !== $k2 && '' !== $k2, 'cache key changes when the post is modified' );
 $cached = get_post_meta( $pid, '_vibery_blocks_css', true );
 $t( vibery_blocks_compile_post( $pid ) === $cached['css'], 'second compile returns the cached css' );
 
+/* ---- completeness: every declaration the compiler asks for survives KSES + the style engine on THIS core ----------- */
+$full = '<!-- wp:kit/band {"uniqueId":"kc-9401","minHeight":"300px","contentMax":"900px","overlay":"linear-gradient(90deg,#000,#fff)","bgImageUrl":"https://e.test/a.png"} -->'
+	. '<!-- wp:kit/split {"uniqueId":"kc-9402","cols":"1fr 1fr","gap":"20px","rowGap":"10px","valign":"center","stackAt":"700px"} -->'
+	. '<!-- wp:kit/cell {"uniqueId":"kc-9403","pad":"8px","justify":"center","type":"cover-image"} --><!-- wp:paragraph --><p>x</p><!-- /wp:paragraph --><!-- /wp:kit/cell -->'
+	. '<!-- /wp:kit/split --><!-- /wp:kit/band -->';
+$fid = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'draft', 'post_title' => 'vb-php-full', 'post_content' => wp_slash( $full ) ) );
+$fcss = vibery_blocks_compile_post( $fid );
+foreach ( array( 'position:relative', 'width:100%', 'box-sizing:border-box', 'min-height:300px', 'background-image:url(', 'background-size:cover',
+	"content:''", 'inset:0', 'pointer-events:none', 'z-index:1', 'max-width:900px', 'margin-inline:auto', 'display:flex', 'flex-direction:column', 'flex:1',
+	'display:grid', 'grid-template-columns:1fr 1fr', 'gap:20px', 'row-gap:10px', 'align-items:center', 'min-width:0', 'padding:8px',
+	'justify-content:center', 'overflow:hidden', 'object-fit:cover', '@media (max-width:700px)' ) as $decl ) {
+	$t( false !== strpos( $fcss, $decl ), "WP " . get_bloginfo( 'version' ) . ": compiled CSS lost '$decl'" );
+}
+wp_delete_post( $fid, true );
+
 /* ---- eject conversion (pure) ---------------------------------------------------------------------------------- */
 $rep = array( 'converted' => array(), 'unsupported' => array() );
 $src = parse_blocks( '<!-- wp:kit/band {"tagName":"header","anchor":"top","className":"my-band evil<x>","uniqueId":"kc-5","backgroundColor":"contrast","style":{"spacing":{"padding":{"top":"9px"}}}} --><!-- wp:kit/split {"stackAt":"900px","uniqueId":"kc-6"} --><!-- wp:kit/cell {"type":"cover-image","justify":"center","uniqueId":"kc-7"} --><!-- wp:paragraph --><p>x</p><!-- /wp:paragraph --><!-- /wp:kit/cell --><!-- /wp:kit/split --><!-- /wp:kit/band -->' );
