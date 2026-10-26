@@ -15,7 +15,7 @@
  * removes the post's CSS section. Refuses (never half-ejects) on content it cannot convert faithfully:
  * kit/countdown (live JS), synced patterns that contain kit blocks.
  *
- * REST (namespace vibery-blocks/v1; auth = WP application password; caps: edit_post on the post + edit_css + edit_theme_options):
+ * REST (namespace vibery-blocks/v1, alias md-content/v1/blocks/*; auth = WP application password; caps: edit_post on the post + edit_css + edit_theme_options):
  *   GET  /status?post_id=      { version, post:{ ejected, kit_blocks, stylesheet } }
  *   POST /eject                { post_id, dry_run? }  -> { status, converted{}, css_bytes, stylesheet, rev }
  *   POST /eject/revert         { post_id, force? }    -> { status, rev }
@@ -29,29 +29,37 @@ final class Vibery_Blocks_Eject {
 	const MAX_CSS  = 524288; // 512 KiB per post; Additional CSS is a DB field, not a file.
 	const GROUP_TAGS = array( 'div', 'section', 'header', 'footer', 'aside', 'main', 'article' );
 
+	/** Canonical namespace vibery-blocks/v1, plus an alias under md-content/v1 (/blocks/*): Site Manager reaches a
+	 *  connected site through the Vibery Connect plugin's namespace only, so the alias is how `build_eject` gets
+	 *  here without Site Manager learning a second REST namespace. Same callbacks, same capability checks. */
 	public static function register_routes() {
-		register_rest_route( self::NS, '/status', array(
-			'methods'             => 'GET',
-			'callback'            => array( __CLASS__, 'handle_status' ),
-			'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
-		) );
 		$post_arg = array( 'post_id' => array( 'type' => 'integer', 'required' => true, 'minimum' => 1 ) );
-		register_rest_route( self::NS, '/eject', array(
-			'methods'             => 'POST',
-			'callback'            => array( __CLASS__, 'handle_eject' ),
-			'permission_callback' => array( __CLASS__, 'can_eject' ),
-			'args'                => $post_arg + array( 'dry_run' => array( 'type' => 'boolean', 'default' => false ) ),
-		) );
-		register_rest_route( self::NS, '/eject/revert', array(
-			'methods'             => 'POST',
-			'callback'            => array( __CLASS__, 'handle_revert' ),
-			'permission_callback' => array( __CLASS__, 'can_eject' ),
-			'args'                => $post_arg + array( 'force' => array( 'type' => 'boolean', 'default' => false ) ),
-		) );
+		foreach ( array( self::NS => '', 'md-content/v1' => '/blocks' ) as $ns => $prefix ) {
+			register_rest_route( $ns, $prefix . '/status', array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'handle_status' ),
+				'permission_callback' => function () { return current_user_can( 'edit_posts' ); },
+			) );
+			register_rest_route( $ns, $prefix . '/eject', array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'handle_eject' ),
+				'permission_callback' => array( __CLASS__, 'can_eject' ),
+				'args'                => $post_arg + array( 'dry_run' => array( 'type' => 'boolean', 'default' => false ) ),
+			) );
+			register_rest_route( $ns, $prefix . '/eject/revert', array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'handle_revert' ),
+				'permission_callback' => array( __CLASS__, 'can_eject' ),
+				'args'                => $post_arg + array( 'force' => array( 'type' => 'boolean', 'default' => false ) ),
+			) );
+		}
 	}
 
 	public static function can_eject( $request ) {
 		$id = (int) $request->get_param( 'post_id' );
+		if ( $id > 0 && ! get_post( $id ) ) {
+			return current_user_can( 'edit_posts' ); // let the handler answer 404 instead of a misleading 403
+		}
 		// Additional CSS is theme-wide: core maps edit_css to unfiltered_html (which Editors have), so also
 		// require edit_theme_options — only people who can already restyle the whole site may bake rules into it.
 		return $id > 0 && current_user_can( 'edit_post', $id ) && current_user_can( 'edit_css' ) && current_user_can( 'edit_theme_options' );

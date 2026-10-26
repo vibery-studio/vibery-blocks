@@ -1,0 +1,82 @@
+# CD: tag -> GitHub Release with the plugin zip. INERT until the repo exists on GitHub and a v* tag is pushed.
+# Modelled on vibery-content's release.yml; NO Sellkit mirror (free plugin, no licence).
+#   * the tag IS the version: the build FAILS if it disagrees with the plugin header, VIBERY_BLOCKS_VER or readme Stable tag
+#   * two assets: vibery-blocks-<ver>.zip (pinnable) and vibery-blocks.zip (the stable /releases/latest/download/ URL)
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive version from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag matches plugin header, constant and readme
+        run: |
+          set -euo pipefail
+          T="${{ steps.ver.outputs.version }}"
+          H=$(grep -m1 '^ \* Version:' vibery-blocks.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
+          C=$(grep -m1 "define( 'VIBERY_BLOCKS_VER'" vibery-blocks.php | sed "s/.*'VIBERY_BLOCKS_VER', *'//; s/'.*//")
+          R=$(grep -m1 '^Stable tag:' readme.txt | sed 's/.*:[[:space:]]*//' | tr -d '[:space:]')
+          echo "tag=$T header=$H const=$C readme=$R"
+          if [ "$T" != "$H" ] || [ "$T" != "$C" ] || [ "$T" != "$R" ]; then
+            echo "::error::version drift — run ./release.sh <version> and commit before tagging"; exit 1
+          fi
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Lint PHP + JS
+        run: |
+          set -euo pipefail
+          find . -name '*.php' -not -path './tests/*' -not -path './dev/*' -print0 | xargs -0 -n1 php -l
+          for f in blocks/*/index.js blocks/countdown/view.js; do node --check "$f"; done
+
+      - name: Build zip
+        id: zip
+        run: |
+          set -euo pipefail
+          STAGE="$RUNNER_TEMP/stage/vibery-blocks"; mkdir -p "$STAGE"
+          cp -R vibery-blocks.php uninstall.php includes blocks assets readme.txt README.md CHANGELOG.md LICENSE "$STAGE"/
+          find "$STAGE" \( -name '.DS_Store' -o -name '*.bak' \) -delete
+          V="${{ steps.ver.outputs.version }}"
+          (cd "$RUNNER_TEMP/stage" && zip -qr "$RUNNER_TEMP/vibery-blocks-$V.zip" vibery-blocks -x '*.DS_Store')
+          cp "$RUNNER_TEMP/vibery-blocks-$V.zip" "$RUNNER_TEMP/vibery-blocks.zip"
+          echo "versioned=$RUNNER_TEMP/vibery-blocks-$V.zip" >> "$GITHUB_OUTPUT"
+          echo "stable=$RUNNER_TEMP/vibery-blocks.zip" >> "$GITHUB_OUTPUT"
+
+      # Prove the artifact is installable BEFORE it reaches a site.
+      - name: Verify zip
+        run: |
+          set -euo pipefail
+          Z="${{ steps.zip.outputs.versioned }}"
+          unzip -t "$Z" > /dev/null
+          [ "$(unzip -Z1 "$Z" | cut -d/ -f1 | sort -u)" = "vibery-blocks" ] || { echo "::error::zip must have exactly one top-level dir"; exit 1; }
+          for f in vibery-blocks/vibery-blocks.php vibery-blocks/includes/compiler.php vibery-blocks/includes/eject.php \
+                   vibery-blocks/blocks/band/block.json vibery-blocks/blocks/band/index.asset.php vibery-blocks/blocks/band/render.php \
+                   vibery-blocks/blocks/split/index.asset.php vibery-blocks/blocks/cell/index.asset.php vibery-blocks/blocks/countdown/index.asset.php \
+                   vibery-blocks/assets/foreign-theme-compat.css vibery-blocks/LICENSE; do
+            unzip -Z1 "$Z" | grep -qx "$f" || { echo "::error::missing $f"; exit 1; }
+          done
+          ! unzip -Z1 "$Z" | grep -E '(^|/)(tests|dev)/' || { echo "::error::dev files in the zip"; exit 1; }
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.zip.outputs.versioned }}
+            ${{ steps.zip.outputs.stable }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

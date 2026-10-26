@@ -27,11 +27,6 @@ if ( defined( 'VIBERY_BLOCKS_VER' ) ) {
 	return; // loaded twice (e.g. mu-plugin + plugins dir) — first copy wins.
 }
 
-define( 'VIBERY_BLOCKS_VER', '1.0.0' );
-define( 'VIBERY_BLOCKS_FILE', __FILE__ );
-define( 'VIBERY_BLOCKS_DIR', plugin_dir_path( __FILE__ ) );
-define( 'VIBERY_BLOCKS_URL', plugin_dir_url( __FILE__ ) );
-
 /**
  * The retired "Kit Blocks" plugin (slug kit-blocks, shipped inside older hosted bundles) registers the
  * same kit/* names. Two registrants would double-print CSS and fatal on duplicate registration; the old
@@ -48,6 +43,11 @@ if ( defined( 'KIT_BLOCKS_VER' ) || function_exists( 'kit_compile_post' ) ) {
 	} );
 	return;
 }
+
+define( 'VIBERY_BLOCKS_VER', '1.0.0' );
+define( 'VIBERY_BLOCKS_FILE', __FILE__ );
+define( 'VIBERY_BLOCKS_DIR', plugin_dir_path( __FILE__ ) );
+define( 'VIBERY_BLOCKS_URL', plugin_dir_url( __FILE__ ) );
 
 /** Post meta written by later build cards: {emitter_ver, conformance_ver, ir_id}. Registered now so the key
  *  and its shape are fixed before any writer exists. Not exposed over REST (the build layer writes it

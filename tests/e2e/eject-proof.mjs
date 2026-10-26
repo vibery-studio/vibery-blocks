@@ -45,10 +45,10 @@ for (const t of THEMES) {
   r.numbers.themeKind = classic ? 'classic' : 'block';
   r.eject.warnings = ej.body && ej.body.warnings;
   ok(dOff.mismatch.length === 0, `${t}: plugin-off structure mismatch ${dOff.mismatch}`);
-  // block themes: baked layout must be EXACT with the plugin gone; classic: widths exact, band heights within 10%.
+  // block themes: baked layout must be EXACT with the plugin gone; classic: widths exact, band heights within the K-0 rhythm bar (docs/build-bar.md: height delta <= 12%).
   ok(dOff.maxDw === 0 && dOff.maxDx === 0 && dOff.maxDcell === 0, `${t}: plugin-off widths/cells moved ${JSON.stringify(dOff)}`);
   if (!classic) ok(dOff.maxDh === 0, `${t}: plugin-off heights moved ${dOff.maxDh}`);
-  else { ok(worstH <= 10, `${t}: classic plugin-off height delta ${worstH}% > 10%`); ok(r.eject.warnings && r.eject.warnings.length === 1, `${t}: classic eject must warn`); }
+  else { ok(worstH <= 12, `${t}: classic plugin-off height delta ${worstH}% > 12% (K-0 rhythm bar)`); ok(r.eject.warnings && r.eject.warnings.length === 1, `${t}: classic eject must warn`); }
   ok(dOn.mismatch.length === 0, `${t}: plugin-on structure mismatch ${dOn.mismatch}`);
   ok(cOff.invalid.every((b) => !b.name.startsWith('core/group')) , `${t}: ejected core/group invalid in editor`);
   ok(cOff.invalid.length <= 7, `${t}: ${cOff.invalid.length} invalid blocks after eject (baseline 7 from down_convert core children)`);
