@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.0] - 2026-10-27
 
 Build-layer vocabulary (Site Manager K-2b). All blocks stay dynamic (`save()` = InnerBlocks.Content), so no saved shape changed and no `deprecated[]` entry is needed: content written by 1.0.0 (incl. pages emitted by the K-2 builder) opens with 0 invalid blocks on WP 6.9.4 and 7.1.3 (`tests/e2e/k2b.mjs`, fixtures `tests/fixtures/k2-emitted/`).
 

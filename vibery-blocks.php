@@ -3,7 +3,7 @@
  * Plugin Name: Vibery Blocks
  * Plugin URI:  https://github.com/vibery-studio/vibery-blocks
  * Description: Layout blocks for pages built with Vibery — kit/band (full-bleed section), kit/split (fluid n-column grid or wrapping row, no core/columns; optionally a real list), kit/cell (split child), kit/layer (bounded overlay) and kit/countdown. Per-viewport visibility uses WordPress 7's own block attribute (polyfilled on 6.3–6.9). Free, GPL, never licence-gated: rendering must not depend on a subscription. Includes a one-click "eject" that bakes the layout into plain core blocks + a static stylesheet so the pages keep looking the same if this plugin is removed.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Author: Vibery
@@ -44,7 +44,7 @@ if ( defined( 'KIT_BLOCKS_VER' ) || function_exists( 'kit_compile_post' ) ) {
 	return;
 }
 
-define( 'VIBERY_BLOCKS_VER', '1.0.0' );
+define( 'VIBERY_BLOCKS_VER', '1.1.0' );
 define( 'VIBERY_BLOCKS_FILE', __FILE__ );
 define( 'VIBERY_BLOCKS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VIBERY_BLOCKS_URL', plugin_dir_url( __FILE__ ) );
