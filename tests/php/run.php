@@ -192,6 +192,28 @@ foreach ( $it as $f ) {
 }
 $t( ! $bad, 'static: forbidden constructs in plugin code: ' . implode( ', ', $bad ) );
 
+
+/* ---- motion: validation + render ------------------------------------------------------------------------- */
+$mc = vibery_blocks_motion_clean( array( 'reveal' => 'up', 'hover' => 'lift', 'ease' => 'spring', 'dur' => 99999, 'delay' => -5, 'stagger' => 5, 'x' => 'y' ) );
+$t( 'up' === $mc['reveal'] && 'lift' === $mc['hover'] && 'spring' === $mc['ease'], 'motion: valid enums kept' );
+$t( 1500 === $mc['dur'] && 0 === $mc['delay'] && 20 === $mc['stagger'], 'motion: numbers clamped (dur 1500, delay 0, stagger 20)' );
+$t( ! isset( $mc['x'] ), 'motion: unknown key dropped' );
+$t( array() === vibery_blocks_motion_clean( array( 'reveal' => 'evil"><script>', 'hover' => array( 'a' ) ) ), 'motion: bad enum values dropped' );
+$t( array() === vibery_blocks_motion_clean( 'string' ), 'motion: non-array dropped' );
+$out = vibery_blocks_motion_render( '<p class="x" style="color:red">hi</p>', array( 'attrs' => array( 'vbMotion' => array( 'reveal' => 'up', 'delay' => 150, 'stagger' => 90 ) ) ) );
+$t( false !== strpos( $out, 'vb-m' ) && false !== strpos( $out, 'vb-r-up' ) && false !== strpos( $out, 'vb-stagger' ) && false !== strpos( $out, 'x' ), 'motion: classes added, existing class kept (' . $out . ')' );
+$t( false !== strpos( $out, 'color:red;--vb-step:90ms;--vb-delay:150ms' ), 'motion: custom props merged into existing style (' . $out . ')' );
+$t( '<p>hi</p>' === vibery_blocks_motion_render( '<p>hi</p>', array( 'attrs' => array() ) ), 'motion: no attr → untouched' );
+$t( '<p>hi</p>' === vibery_blocks_motion_render( '<p>hi</p>', array( 'attrs' => array( 'vbMotion' => array( 'reveal' => 'nope' ) ) ) ), 'motion: invalid-only attr → untouched' );
+$t( '' === vibery_blocks_motion_render( '', array( 'attrs' => array( 'vbMotion' => array( 'reveal' => 'up' ) ) ) ), 'motion: empty html stays empty' );
+$reg = WP_Block_Type_Registry::get_instance();
+$all = true; foreach ( array( 'core/paragraph', 'core/group', 'core/image', 'kit/band', 'kit/split' ) as $bn ) { $bt = $reg->get_registered( $bn ); $all = $all && $bt && isset( $bt->attributes['vbMotion'] ); }
+$t( $all, 'motion: vbMotion registered on core/* and kit/* block types' );
+$full = do_blocks( '<!-- wp:paragraph {"vbMotion":{"reveal":"fade","hover":"zoom"}} --><p>x</p><!-- /wp:paragraph -->' );
+$t( false !== strpos( $full, 'vb-r-fade' ) && false !== strpos( $full, 'vb-h-zoom' ), 'motion: do_blocks end-to-end on core/paragraph' );
+$kb = do_blocks( '<!-- wp:kit/band {"uniqueId":"kc-9811","vbMotion":{"reveal":"down"}} --><!-- wp:paragraph --><p>y</p><!-- /wp:paragraph --><!-- /wp:kit/band -->' );
+$t( false !== strpos( $kb, 'vb-r-down' ), 'motion: do_blocks end-to-end on kit/band' );
+
 wp_delete_post( $pid, true );
 echo $failures ? 'FAIL ' . count( $failures ) . ' of ' . $n . "\n - " . implode( "\n - ", $failures ) . "\n" : "PASS vibery-blocks php ($n assertions)\n";
 exit( $failures ? 1 : 0 );

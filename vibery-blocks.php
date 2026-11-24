@@ -84,7 +84,7 @@ add_action( 'init', function () {
 require_once VIBERY_BLOCKS_DIR . 'includes/compiler.php';
 require_once VIBERY_BLOCKS_DIR . 'includes/eject.php';
 require_once VIBERY_BLOCKS_DIR . 'includes/visibility.php';
-
+require_once VIBERY_BLOCKS_DIR . 'includes/motion.php';
 /**
  * Foreign-theme compat: when the site is NOT on kit-base, re-assert the trap-1/trap-2 fixes namespaced to
  * .kit-* so bands/splits stay correct under a theme that re-imports the contested defaults (blockGap
