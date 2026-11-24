@@ -1,0 +1,59 @@
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"6rem","bottom":"6rem"}}},"backgroundColor":"surface","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull has-surface-background-color has-background" style="padding-top:6rem;padding-bottom:6rem"><!-- wp:heading {"level":1,"vbMotion":{"reveal":"up"}} -->
+<h1 class="wp-block-heading">Motion demo: above the fold</h1>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"vbMotion":{"reveal":"fade","delay":150}} -->
+<p>Core paragraph with a fade reveal and 150 ms delay.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:group -->
+
+<!-- wp:spacer {"height":"900px"} -->
+<div style="height:900px" aria-hidden="true" class="wp-block-spacer"></div>
+<!-- /wp:spacer -->
+
+<!-- wp:group {"layout":{"type":"constrained"},"className":"demo-stagger","vbMotion":{"reveal":"up","stagger":120}} -->
+<div class="wp-block-group demo-stagger"><!-- wp:paragraph -->
+<p>Stagger child 1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Stagger child 2</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Stagger child 3</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:group -->
+
+<!-- wp:spacer {"height":"700px"} -->
+<div style="height:700px" aria-hidden="true" class="wp-block-spacer"></div>
+<!-- /wp:spacer -->
+
+<!-- wp:columns {"vbMotion":{"stagger":100,"reveal":"zoom","ease":"spring","dur":700}} -->
+<div class="wp-block-columns"><!-- wp:column {"vbMotion":{"hover":"lift"}} -->
+<div class="wp-block-column"><!-- wp:paragraph -->
+<p>Card A (hover lift)</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"vbMotion":{"hover":"glow"}} -->
+<div class="wp-block-column"><!-- wp:paragraph -->
+<p>Card B (hover glow)</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns -->
+
+<!-- wp:kit/band {"uniqueId":"kc-9801","vbMotion":{"reveal":"left","dur":500}} -->
+<!-- wp:paragraph -->
+<p>kit/band with a left reveal</p>
+<!-- /wp:paragraph -->
+<!-- /wp:kit/band -->
+
+<!-- wp:paragraph {"vbMotion":{"reveal":"evil\"><script>alert(1)</script>","hover":"lift","dur":999999,"delay":-5,"x":"y"}} -->
+<p>Hostile attrs: bad reveal dropped, dur clamped to 1500, delay clamped to 0.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:spacer {"height":"400px"} -->
+<div style="height:400px" aria-hidden="true" class="wp-block-spacer"></div>
+<!-- /wp:spacer -->

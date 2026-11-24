@@ -1,0 +1,42 @@
+/* Vibery Blocks — motion. transform/opacity only → 0 CLS. Hidden states exist only under html.vb-js. */
+.vb-m{--vb-dur:600ms;--vb-delay:0ms;--vb-step:80ms;--vb-dist:24px;--vb-ease:cubic-bezier(.22,.61,.36,1)}
+.vb-e-snappy{--vb-ease:cubic-bezier(.2,.9,.3,1);--vb-dur:380ms}
+.vb-e-spring{--vb-ease:cubic-bezier(.34,1.56,.64,1)}
+/* reveal: from-state */
+.vb-js .vb-m.vb-r-fade,.vb-js .vb-m.vb-r-up,.vb-js .vb-m.vb-r-down,.vb-js .vb-m.vb-r-left,.vb-js .vb-m.vb-r-right,.vb-js .vb-m.vb-r-zoom{opacity:0;will-change:opacity,transform;transition:opacity var(--vb-dur) var(--vb-ease) var(--vb-delay),transform var(--vb-dur) var(--vb-ease) var(--vb-delay)}
+.vb-js .vb-m.vb-r-up{transform:translate3d(0,var(--vb-dist),0)}
+.vb-js .vb-m.vb-r-down{transform:translate3d(0,calc(var(--vb-dist) * -1),0)}
+.vb-js .vb-m.vb-r-left{transform:translate3d(var(--vb-dist),0,0)}
+.vb-js .vb-m.vb-r-right{transform:translate3d(calc(var(--vb-dist) * -1),0,0)}
+.vb-js .vb-m.vb-r-zoom{transform:scale(.94)}
+.vb-js .vb-m.vb-in{opacity:1;transform:none;will-change:auto}
+.vb-js .vb-m.vb-done,.vb-js .vb-m.vb-stagger.vb-done>*{transition-delay:0ms}
+/* stagger: the block itself stays put, its children reveal one after another */
+.vb-js .vb-m.vb-stagger{opacity:1;transform:none}
+.vb-js .vb-m.vb-stagger>*{opacity:0;transform:translate3d(0,var(--vb-dist),0);transition:opacity var(--vb-dur) var(--vb-ease),transform var(--vb-dur) var(--vb-ease);transition-delay:calc(var(--vb-delay) + var(--vb-i,0) * var(--vb-step))}
+.vb-js .vb-m.vb-stagger.vb-r-down>*{transform:translate3d(0,calc(var(--vb-dist) * -1),0)}
+.vb-js .vb-m.vb-stagger.vb-r-left>*{transform:translate3d(var(--vb-dist),0,0)}
+.vb-js .vb-m.vb-stagger.vb-r-right>*{transform:translate3d(calc(var(--vb-dist) * -1),0,0)}
+.vb-js .vb-m.vb-stagger.vb-r-zoom>*{transform:scale(.94)}
+.vb-js .vb-m.vb-stagger.vb-r-fade>*{transform:none}
+.vb-js .vb-m.vb-stagger.vb-in>*{opacity:1;transform:none}
+.vb-m.vb-stagger>:nth-child(1){--vb-i:0}.vb-m.vb-stagger>:nth-child(2){--vb-i:1}.vb-m.vb-stagger>:nth-child(3){--vb-i:2}.vb-m.vb-stagger>:nth-child(4){--vb-i:3}.vb-m.vb-stagger>:nth-child(5){--vb-i:4}.vb-m.vb-stagger>:nth-child(6){--vb-i:5}.vb-m.vb-stagger>:nth-child(7){--vb-i:6}.vb-m.vb-stagger>:nth-child(8){--vb-i:7}.vb-m.vb-stagger>:nth-child(9){--vb-i:8}.vb-m.vb-stagger>:nth-child(10){--vb-i:9}.vb-m.vb-stagger>:nth-child(11){--vb-i:10}.vb-m.vb-stagger>:nth-child(12){--vb-i:11}
+/* hover: only on real hover devices, transform/opacity/shadow */
+@media (hover:hover){
+	.vb-m[class*="vb-h-"]{transition:transform var(--vb-dur) var(--vb-ease),box-shadow var(--vb-dur) var(--vb-ease),opacity var(--vb-dur) var(--vb-ease)}
+	:is(html,html.vb-js) .vb-m.vb-h-lift.vb-h-lift:hover{transform:translate3d(0,-6px,0);box-shadow:0 14px 30px -12px rgb(0 0 0/.28)}
+	:is(html,html.vb-js) .vb-m.vb-h-zoom.vb-h-zoom:hover{transform:scale(1.03)}
+	:is(html,html.vb-js) .vb-m.vb-h-glow.vb-h-glow:hover{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 18%,transparent),0 10px 28px -10px rgb(0 0 0/.3)}
+	:is(html,html.vb-js) .vb-m.vb-h-dim.vb-h-dim:hover{opacity:.82}
+	.vb-m.vb-h-zoom img,.vb-m.vb-h-lift img{transition:transform calc(var(--vb-dur) * 1.4) var(--vb-ease)}
+	.vb-m.vb-h-zoom:hover img{transform:scale(1.06)}
+	.vb-m.vb-h-zoom{overflow:hidden}
+}
+@media (prefers-reduced-motion:reduce){
+	.vb-m,.vb-m>*,.vb-m img{transition:none!important;animation:none!important;opacity:1!important;transform:none!important}
+}
+/* editor preview: replay the reveal on demand (two identical keyframes so a class swap restarts it) */
+@keyframes vb-pa{from{opacity:0;transform:translate3d(0,var(--vb-dist,24px),0)}to{opacity:1;transform:none}}
+@keyframes vb-pb{from{opacity:0;transform:translate3d(0,var(--vb-dist,24px),0)}to{opacity:1;transform:none}}
+.vb-edit-a[class*="vb-r-"]{animation:vb-pa var(--vb-dur) var(--vb-ease) var(--vb-delay) both}
+.vb-edit-b[class*="vb-r-"]{animation:vb-pb var(--vb-dur) var(--vb-ease) var(--vb-delay) both}

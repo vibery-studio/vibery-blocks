@@ -3,11 +3,15 @@
 Free (GPL-2.0-or-later) layout blocks for pages built with Vibery: `kit/band`, `kit/split`, `kit/cell`, `kit/countdown`.
 Rendering is never licence-gated and makes no network calls. Product page for AI/humans: see `readme.txt`; releases: `RELEASING.md`.
 
+## Motion
+Every block (core + kit) gets a Motion panel (`vbMotion` attr: reveal / hover / ease / dur / delay / stagger). See `includes/motion.php` header for the contract; proof = `tests/e2e/motion.mjs` against `tests/fixtures/motion/demo.html`.
+
 ## Layout
 - `vibery-blocks.php` boot, `_vibery_build` meta, coexistence with the retired Kit Blocks plugin
 - `blocks/<name>/{block.json,index.js,render.php,style-index.css,index.asset.php}` apiVersion 3, dynamic; `deprecated[]` in `index.js`
 - `includes/compiler.php` render-time per-page CSS (`.kc-N.kc-N` selectors; cache key `ver:globalStylesHash:postModified`)
 - `includes/eject.php` eject / revert REST (`vibery-blocks/v1/*`, alias `md-content/v1/blocks/*`)
+- `includes/motion.php` + `assets/motion/{motion.css,motion.js,editor.js}` scroll reveal / hover / stagger on every block
 - `assets/foreign-theme-compat.css` full-bleed + margin fixes for non-kit-base themes
 
 ## Tests (all execute; need Docker + Chrome + Playwright)

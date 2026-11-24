@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Motion (`includes/motion.php`, `assets/motion/*`): one block attribute `vbMotion` on EVERY block (core/* and kit/*) — `reveal` (fade|up|down|left|right|zoom), `hover` (lift|zoom|glow|dim), `ease` (soft|snappy|spring), `dur`, `delay`, `stagger` (reveals the children one after another). Stored in the block comment JSON only, so static core blocks stay valid. CSS-first (transform + opacity only), ~1 KB IntersectionObserver script, no jQuery, `prefers-reduced-motion` disables everything, hidden state exists only under `html.vb-js` (head snippet; self-removes after 4 s if the script never ran; no-JS shows everything). Editor: "Motion" inspector panel on every block + "Preview motion in editor" toggle/Replay. Tests: `tests/php/run.php` (motion section), `tests/e2e/motion.mjs`, demo `tests/fixtures/motion/demo.html`.
+
 ## [1.1.0] - 2026-10-27
 
 Build-layer vocabulary (Site Manager K-2b). All blocks stay dynamic (`save()` = InnerBlocks.Content), so no saved shape changed and no `deprecated[]` entry is needed: content written by 1.0.0 (incl. pages emitted by the K-2 builder) opens with 0 invalid blocks on WP 6.9.4 and 7.1.3 (`tests/e2e/k2b.mjs`, fixtures `tests/fixtures/k2-emitted/`).
